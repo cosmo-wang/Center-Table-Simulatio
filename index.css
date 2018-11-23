@@ -21,7 +21,7 @@ body:before{
 }
 
 button{
-  background:#1AAB8A;
+  background:#fdf498;
   color:#fff;
   border:none;
   position:relative;
@@ -45,7 +45,7 @@ button:before,button:after{
   right:0;
   height:2px;
   width:0;
-  background: #1AAB8A;
+  background: #fdf498;
   transition:400ms ease all;
 }
 
