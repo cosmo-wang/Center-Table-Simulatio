@@ -2,13 +2,14 @@
 	text-align: center;
 	font-size: 3em;
 	margin: 2%;
+	margin-top: 5px;
 }
 
 #control-panel {
 	margin-left: auto;
 	margin-right: auto;
 	margin-bottom: 2%;
-	width: 20%;
+	width: 25%;
 	display: flex;
 	justify-content: space-between;
 }
@@ -21,12 +22,12 @@ body:before{
 }
 
 button{
-  background:#fdf498;
+  background:#ffbf00;
   color:#fff;
   border:none;
   position:relative;
   height:40px;
-  font-size:0.9em;
+  font-size:1em;
   padding:0 2em;
   cursor:pointer;
   transition:800ms ease all;
@@ -35,7 +36,7 @@ button{
 
 button:hover{
   background:#fff;
-  color:#1AAB8A;
+  color:#a67c00;
 }
 
 button:before,button:after{
@@ -45,7 +46,7 @@ button:before,button:after{
   right:0;
   height:2px;
   width:0;
-  background: #fdf498;
+  background: #ffbf00;
   transition:400ms ease all;
 }
 
