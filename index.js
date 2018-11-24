@@ -17,7 +17,7 @@
 		let timerHandler = null
 		$("#start").click(function() {
 			if (!timerHandler) {
-					timerHandler = setInterval(function() {
+				timerHandler = setInterval(function() {
 					updateTime();
 					let timesRun = 0;
 					let stationTimerHandler = setInterval(function() {
@@ -31,7 +31,9 @@
 						for (j = 0; j < num; j++) {
 							addCustomer(stationName);
 						}
-						adjustServer(stationName);
+						let serverNum = parseInt(Math.random() * 4) + 1;
+						console.log(stationName + "Target num: " + serverNum);
+						adjustServer(stationName, serverNum);
 						console.log(num + " added to " + stationName + "!");
 					}, 50);
 				}, 1000);
@@ -40,6 +42,15 @@
 		$("#stop").click(function() {
 			if (timerHandler) {
 				clearInterval(timerHandler);
+				timerHandler = null;
+			}
+		});
+		$("#clear").click(function () {
+			if (!timerHandler) {
+				resetTime();
+				resetCount();
+				clearCustomers();
+				clearServers();
 			}
 		});
 
@@ -76,15 +87,27 @@
 	}
 
 	function resetTime() {
-		$("#time").text("07:00 AM");
+		$("#time").text("07:00 A.M.");
 	}
 
 	function resetCount() {
-		document.getElementById(name + "-count").innerText = 0;
+		for (let i = 0; i < STATION_NAMES.length; i++) {
+			$("#" + STATION_NAMES[i] + "-count").text("0");
+		}
 	}
 
-	function clearCustomers(n) {
-		$("#wait-area").empty();
+	function clearCustomers() {
+		for (let i = 0; i < STATION_NAMES.length; i++) {
+			while ($("#" + STATION_NAMES[i] + "-wait-area").children().length > 1) {
+				$("#" + STATION_NAMES[i] + "-wait-area").children().last().remove();
+			}
+		}
+	}
+
+	function clearServers() {
+		for (let i = 0; i < STATION_NAMES.length; i++) {
+			$("#" + STATION_NAMES[i] + "-server-area").empty();
+		}
 	}
 	
 	/*
@@ -132,7 +155,26 @@
 		}
 	}
 
-	function adjustServer(stationName) {
+	/*
+		Adjust the number of servers at given station to n.
+		@param {String} stationName: name of the station to adjust
+		@param {int} number of servers at the time at the station
+	*/
+	function adjustServer(stationName, n) {
+		let childrenNum = $("#" + stationName + "-server-area div").length;
+		console.log(stationName + " Cur num = " + childrenNum);
+		while (childrenNum != n) {
+			if (childrenNum < n) {
+				$("#" + stationName + "-server-area").append(createServer);
+				childrenNum++;
+			} else {
+				$("#" + stationName + "-server-area").children().last().remove();
+				childrenNum--;
+			}
+		}
+	}
+
+	function createServer() {
 		let server = document.createElement("div");
 		server.classList.add("server");
 		let img = document.createElement("img");
@@ -140,12 +182,10 @@
 		img.alt = "cat server";
 		img.style.width = "40px";
 		img.style.height = "24.7px";
-
 		server.appendChild(img);
+		return server;
 
-		$("#" + stationName + "-server-area").append(server);
 	}
-
 	/*
 		Add n customers to a specific station.
 		@param {int} n: number of customers to be added
