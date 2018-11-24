@@ -21,7 +21,7 @@
 		initializeWaitingArea(STATION_NAMES.length);
 		let timerHandler = null
 		$("#start").click(function() {
-			isOpen();
+			isOpen("monday");
 			if (!timerHandler) {
 				timerHandler = setInterval(function() {
 					console.log(getTime());
