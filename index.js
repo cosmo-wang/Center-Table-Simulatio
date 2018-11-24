@@ -21,7 +21,6 @@
 		initializeWaitingArea(STATION_NAMES.length);
 		let timerHandler = null
 		$("#start").click(function() {
-			isOpen("monday");
 			if (!timerHandler) {
 				timerHandler = setInterval(function() {
 					console.log(getTime());
@@ -76,16 +75,6 @@
 		}
 		
 	});
-
-	function isOpen(day) {
-		let url = "index.php?mode=open&day=" + day;
-		fetch(url)
-			.then(checkStatus)
-         	// Displays description on the page
-         	.then(function(responseTEXT) {
-            	alert(responseTEXT);
-         	})
-	}
 
 	function getTime() {
 		let time = $("#time").text();
