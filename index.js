@@ -79,7 +79,7 @@
 
 	function isOpen(day) {
 		let url = "index.php?mode=open&day=" + day;
-		fetch(url, {credentials: 'include'})
+		fetch(url)
 			.then(checkStatus)
          	// Displays description on the page
          	.then(function(responseTEXT) {
