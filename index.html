@@ -13,8 +13,25 @@
 		<button id="start">Start</button>
 		<button id="stop">Stop</button>
 		<button id="clear">Clear</button>
+		
 	</div>
+	<div id="slider-container">
+		  <input type="range" min="1000" max="5000" value="3000" class="slider" id="speed-slider">
+		  <p id="speed-text-box"><span id="speed"></span> seconds = 15 minutes</p>
+		</div>
 	<div id="clock">
+		<div class="select">
+	      <select id="day-selector">
+	        <option selected="selected">Monday</option>
+	        <option>Tuesday</option>
+	        <option>Wednesday</option>
+	        <option>Thursday</option>
+	        <option>Friday</option>
+	        <option>Saturday</option>
+	        <option>Sunday</option>
+	      </select>
+	      <div class="select__arrow"></div>
+	    </div>
 		<p id="time">07:00 A.M.</p>
 	</div>
 	<div id="station-area"></div>
