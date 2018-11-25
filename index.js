@@ -7,47 +7,110 @@
 (function() {
 
 	// Name of all food stations
-	let STATION_NAMES = ["Quench", "Noodle", "Plate", "Market", "Select", "Seared"];
-	let COLOR = ["#2a4d69", "#4b86b4", "#adcbe3", "#e7eff6", "#63ace5", "#60B8D2"];
-	let TIME_INTERVAL = 15;
+	const STATION_NAMES = ["Quench", "Noodle", "Plate", "Market", "Select", "Seared"];
+	const COLOR = ["#2a4d69", "#4b86b4", "#adcbe3", "#e7eff6", "#63ace5", "#60B8D2"];
+	const TIME_INTERVAL = 15;
+	const REDUCER = (accumulator, currentValue) => accumulator + currentValue;
+
 
 	// Run all code inside this section when the page is loaded
 	$(document).ready(function() {
-		let day = $("#day-selector").val().toLowerCase();
+		let day = $("#day-selector").val();
 		let speed = $("#speed-slider").val();
 		$("#speed").text(speed / 1000);
 
 		initializeStations(STATION_NAMES.length);
 		initializeWaitingArea(STATION_NAMES.length);
-		let timerHandler = null
+		let timerHandler = null;
+		let count = null;
+		let prob = null;
 		$("#start").click(function() {
+			let timeIndex = 0;
+			count = COUNT[day];
 			if (!timerHandler) {
+				prob = PROB[day];
 				timerHandler = setInterval(function() {
-					console.log(getTime());
-					updateTime();
-					let timesRun = 0;
-					let stationTimerHandler = setInterval(function() {
-						if (timesRun > 5) {
-							clearInterval(stationTimerHandler);
-							return;
-						}
-						let stationName = STATION_NAMES[timesRun];
+					
+					// reset and stop all when simulation finished
+					if (getTime() === 25.5) {
+						clearInterval(timerHandler);
+						clearAll(day);
+						alert("Simulation finished.")
+						return;
+					}
 
+
+					updateTime();
+					// adjust number of servers at each station
+					for (let i = 0; i < STATION_NAMES.length; i++) {
+						let stationName = STATION_NAMES[i];
+						if (isOpen(day, STATION_NAMES[i], getTime())) {
+							document.getElementById(STATION_NAMES[i] + "-title").classList.remove("closed");
+						} else {
+
+							document.getElementById(STATION_NAMES[i] + "-title").classList.add("closed");
+						}
 						// get the number of customers gone in the past 15 minutes
 						let curServerCount = $("#" + stationName + "-server-area div").children().length;
 						if (curServerCount > 0) {
 							let customersGone = Math.ceil(TIME_INTERVAL * getServerSpeed(stationName, curServerCount));
+							if (stationName === "Market") {
+								console.log("Time is " + getTime());
+								console.log("Now Market has " + ($("#" + stationName + "-wait-area").children().length - 1) + " customers.");
+								console.log(customersGone + " gone at " + stationName);
+							}
 							removeCustomer(stationName, customersGone);
-						}
-						timesRun++;
-						let num = parseInt(Math.random() * 4) + 1;
-						for (j = 0; j < num; j++) {
-							addCustomer(stationName);
+							if (stationName === "Market") {
+								console.log("After Market has " + ($("#" + stationName + "-wait-area").children().length - 1) + " customers.");
+							}
 						}
 						let serverNum = parseInt(Math.random() * 4) + 1;
-						adjustServer(stationName, 1);
-						console.log(num + " added to " + stationName + "!");
-					}, 50);
+						adjustServer(stationName, 4);
+					}
+
+					// let customerIndex = 0;
+					// let customerPerStation = [];
+					// for (let i = 0; i < STATION_NAMES.length; i++) {
+					// 	customerPerStation[i] = Math.ceil(count[timeIndex] * (prob[STATION_NAMES[i]][timeIndex] / 100));
+					// }
+					// let customerCount = customerPerStation.reduce(REDUCER);
+					// console.log(customerPerStation);
+					// console.log(customerCount + " came.");
+					// let customerTimerHandler = setInterval(function() {
+					// 	if (customerIndex >= customerCount) {
+					// 		timeIndex++;
+					// 		clearInterval(customerTimerHandler);
+					// 		return;
+					// 	}
+					// 	for (let i = 0; i < customerPerStation.length; i++) {
+					// 		if (customerPerStation[i] > 0) {
+					// 			addCustomer(STATION_NAMES[i]);
+					// 			customerPerStation[i]--;
+					// 		}
+					// 	}
+					// 	customerIndex++;
+					// }, 5);
+
+
+
+					// -------------------------------- //
+					// assign customers to each station base on monte carlo method
+					let customerIndex = 0;
+					let customerCount = count[timeIndex];
+					console.log(customerCount + " came.");
+					let customerTimerHandler = setInterval(function() {
+						if (customerIndex >= customerCount) {
+							timeIndex++;
+							clearInterval(customerTimerHandler);
+							return;
+						}
+						let destStation = STATION_NAMES[monteCarlo(timeIndex, count, prob)];
+						addCustomer(destStation);
+						customerIndex++;
+					}, 10);
+					// -------------------------------- //
+
+
 				}, speed);
 			}
 		});
@@ -59,15 +122,12 @@
 		});
 		$("#clear").click(function () {
 			if (!timerHandler) {
-				resetTime(day);
-				resetCount();
-				clearCustomers();
-				clearServers();
+				clearAll();
 			}
 		});
 		$("#day-selector").change(function() {
-			day = $(this).val().toLowerCase();
-			resetTime(day);
+			day = $(this).val();
+			clearAll(day);
 		});
 		document.getElementById("speed-slider").oninput = function() {
 			speed = $("#speed-slider").val()
@@ -76,10 +136,43 @@
 		
 	});
 
+	function isOpen(day, stationName, time) {
+		let hours = HOURS[day][stationName];
+		for (let i = 0; i < hours.length; i++) {
+			if (time >= hours[i][0] && time < hours[i][1]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function monteCarlo(time, count, prob) {
+		let p = [prob["Quench"][time] / 100, 
+				 prob["Noodle"][time] / 100, 
+				 prob["Plate"][time] / 100, 
+				 prob["Market"][time] / 100,
+				 prob["Select"][time] / 100, 
+				 prob["Seared"][time] / 100];
+		let x = Math.random();
+		let s = 0;
+		for (let i = 0; i < p.length; i++) {
+			s += p[i]
+			if (x <= s) {
+				if (i === 3) {
+					console.log("1 added to Market.")
+				}
+				return i;
+			}
+		}
+	}
+
 	function getTime() {
 		let time = $("#time").text();
 		let hour = parseInt(time.substring(0, 2));
 		let min = parseInt(time.substring(3, 5));
+		if (hour < 7) {
+			return hour + (min / 60) + 24;
+		}
 		return hour + min / 60;
 	}
 
@@ -100,13 +193,13 @@
 			return 1 / (-0.2 * n + 1.2);
 		}
 		if (stationName === "Market") {
-			return 1 / (-0.1 * n + 1.5);
+			return 1 / (-0.2 * n + 1);
 		}
 		if (stationName === "Select") {
 			return 1 / (-0.2 * n + 1);
 		}
 		if (stationName === "Seared") {
-			return 1 / (-0.2 * n + 1.6);
+			return 1 / (-0.2 * n + 1);
 		}
 
 	}
@@ -118,17 +211,10 @@
 		let time = $("#time").text();
 		let hour = parseInt(time.substring(0, 2));
 		let min = parseInt(time.substring(3, 5));
-		let ampm = time.substring(6);
 		min += TIME_INTERVAL;
 		if (min >= 60) {
-			hour += parseInt(min / 60);
-			min %= 60;
-		}
-		if (hour >= 12) {
-			ampm = "P.M.";
-		}
-		if (hour > 12) {
-			hour %= 12;
+			hour += 1;
+			min -= 60;
 		}
 		if (min < 10) {
 			min = "0" + min;
@@ -136,38 +222,37 @@
 		if (hour < 10) {
 			hour = "0" + hour;
 		}
-		time = "" + hour + ":" + min + " " + ampm;
+		if (hour >= 24) {
+			hour -= 24;
+		}
+		time = "" + hour + ":" + min;
 		$("#time").text(time);
 	}
 
-	function resetTime(day) {
-		if (day === "saturday" || day === "sunday") {
-			$("#time").text("08:00 A.M.");
+	function clearAll(day) {
+		// reset time
+		if (day === "Saturday" || day === "Sunday") {
+			$("#time").text("08:00");
 		} else {
-			$("#time").text("07:00 A.M.");
+			$("#time").text("07:00");
 		}
-		
-	}
-
-	function resetCount() {
+		// reset count
 		for (let i = 0; i < STATION_NAMES.length; i++) {
 			$("#" + STATION_NAMES[i] + "-count").text("0");
 		}
-	}
-
-	function clearCustomers() {
+		// clear customers
 		for (let i = 0; i < STATION_NAMES.length; i++) {
 			while ($("#" + STATION_NAMES[i] + "-wait-area").children().length > 1) {
 				$("#" + STATION_NAMES[i] + "-wait-area").children().last().remove();
 			}
 		}
-	}
-
-	function clearServers() {
+		// clear servers
 		for (let i = 0; i < STATION_NAMES.length; i++) {
 			$("#" + STATION_NAMES[i] + "-server-area").empty();
 		}
 	}
+
+
 	
 	/*
 		Add stations to the station area on the page.
@@ -179,6 +264,7 @@
 			let title = document.createElement("p");
 			title.innerText = (STATION_NAMES[i]);
 			title.classList.add("station-title");
+			title.id = STATION_NAMES[i] + "-title";
 			let serverArea = document.createElement("div");
 			serverArea.classList.add("server-area");
 			serverArea.id = STATION_NAMES[i] + "-server-area";
@@ -253,6 +339,9 @@
 		while ($("#" + stationName + "-wait-area").children().length - 1 > 0 && n > 0) {
 			$("#" + stationName + "-wait-area").children().last().remove();
 			n--;
+		}
+		if ($("#" + stationName + "-wait-area").children().length == 1) {
+			$("#" + stationName + "-count").text("0");
 		}
 	}
 
