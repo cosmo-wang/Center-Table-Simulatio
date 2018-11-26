@@ -32,7 +32,7 @@
 				timerHandler = setInterval(function() {
 					
 					// reset and stop all when simulation finished
-					if (getTime() === 25.5) {
+					if (getTime() === 25) {
 						clearInterval(timerHandler);
 						clearAll(day);
 						alert("Simulation finished.")
@@ -50,6 +50,9 @@
 
 							document.getElementById(STATION_NAMES[i] + "-title").classList.add("closed");
 						}
+
+						adjustServer(stationName, SHIFTS[day][i][timeIndex]);
+
 						// get the number of customers gone in the past 15 minutes
 						let curServerCount = $("#" + stationName + "-server-area div").children().length;
 						if (curServerCount > 0) {
@@ -64,39 +67,16 @@
 								console.log("After Market has " + ($("#" + stationName + "-wait-area").children().length - 1) + " customers.");
 							}
 						}
-						let serverNum = parseInt(Math.random() * 4) + 1;
-						adjustServer(stationName, 4);
+						
 					}
 
-					// let customerIndex = 0;
-					// let customerPerStation = [];
-					// for (let i = 0; i < STATION_NAMES.length; i++) {
-					// 	customerPerStation[i] = Math.ceil(count[timeIndex] * (prob[STATION_NAMES[i]][timeIndex] / 100));
-					// }
-					// let customerCount = customerPerStation.reduce(REDUCER);
-					// console.log(customerPerStation);
-					// console.log(customerCount + " came.");
-					// let customerTimerHandler = setInterval(function() {
-					// 	if (customerIndex >= customerCount) {
-					// 		timeIndex++;
-					// 		clearInterval(customerTimerHandler);
-					// 		return;
-					// 	}
-					// 	for (let i = 0; i < customerPerStation.length; i++) {
-					// 		if (customerPerStation[i] > 0) {
-					// 			addCustomer(STATION_NAMES[i]);
-					// 			customerPerStation[i]--;
-					// 		}
-					// 	}
-					// 	customerIndex++;
-					// }, 5);
-
-
-
-					// -------------------------------- //
-					// assign customers to each station base on monte carlo method
 					let customerIndex = 0;
-					let customerCount = count[timeIndex];
+					let customerPerStation = [];
+					for (let i = 0; i < STATION_NAMES.length; i++) {
+						customerPerStation[i] = Math.ceil(count[timeIndex] * (prob[STATION_NAMES[i]][timeIndex] / 100));
+					}
+					let customerCount = customerPerStation.reduce(REDUCER);
+					console.log(customerPerStation);
 					console.log(customerCount + " came.");
 					let customerTimerHandler = setInterval(function() {
 						if (customerIndex >= customerCount) {
@@ -104,10 +84,32 @@
 							clearInterval(customerTimerHandler);
 							return;
 						}
-						let destStation = STATION_NAMES[monteCarlo(timeIndex, count, prob)];
-						addCustomer(destStation);
+						for (let i = 0; i < customerPerStation.length; i++) {
+							if (customerPerStation[i] > 0) {
+								addCustomer(STATION_NAMES[i]);
+								customerPerStation[i]--;
+							}
+						}
 						customerIndex++;
-					}, 10);
+					}, 5);
+
+
+
+					// -------------------------------- //
+					// assign customers to each station base on monte carlo method
+					// let customerIndex = 0;
+					// let customerCount = count[timeIndex];
+					// console.log(customerCount + " came.");
+					// let customerTimerHandler = setInterval(function() {
+					// 	if (customerIndex >= customerCount) {
+					// 		timeIndex++;
+					// 		clearInterval(customerTimerHandler);
+					// 		return;
+					// 	}
+					// 	let destStation = STATION_NAMES[monteCarlo(timeIndex, count, prob)];
+					// 	addCustomer(destStation);
+					// 	customerIndex++;
+					// }, 10);
 					// -------------------------------- //
 
 
@@ -190,10 +192,10 @@
 			return 1 / (-0.2 * n + 1.2);
 		}
 		if (stationName === "Plate") {
-			return 1 / (-0.2 * n + 1.2);
+			return 1 / (-0.2 * n + 1);
 		}
 		if (stationName === "Market") {
-			return 1 / (-0.2 * n + 1);
+			return 1 / (-0.2 * n + 1.1);
 		}
 		if (stationName === "Select") {
 			return 1 / (-0.2 * n + 1);
