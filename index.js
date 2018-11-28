@@ -1,5 +1,5 @@
 /**
-	This is the jQuery code for simulation of Center Table
+	This is the code for simulation of Center Table
 	schedule and feasibility testing.
 
 	Author: Cosmo Wang
@@ -12,143 +12,272 @@
 	const TIME_INTERVAL = 15;
 	const REDUCER = (accumulator, currentValue) => accumulator + currentValue;
 
-
 	// Run all code inside this section when the page is loaded
 	$(document).ready(function() {
+		// set the day and speed of choosen on the page
 		let day = $("#day-selector").val();
 		let speed = $("#speed-slider").val();
+		let ctSchedule = document.getElementById("ct-schedule").checked;
+		let modelSchedule = document.getElementById("model-schedule").checked;
+		let mcMode = document.getElementById("mc-mode").checked;
+		let fixedMode = document.getElementById("fixed-mode").checked;
 		$("#speed").text(speed / 1000);
 
+		$(".header").click(function () {
+		    $header = $(this);
+		    //getting the next element
+		    $content = $header.next();
+		    //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
+		    $content.slideToggle(300, function () {
+		        //execute this after slideToggle is done
+		        //change text of header based on visibility of content div
+		        $header.text(function () {
+		            //change text based on condition
+		            return $content.is(":visible") ? "Description: (click to collapse)" : "Description: (click to expand)";
+		        });
+		    });
+		});
+		
+		// populated the page with stations and waiting areas
 		initializeStations(STATION_NAMES.length);
 		initializeWaitingArea(STATION_NAMES.length);
+
+		// set main timer handler to be null
+		// set up count and probability data
 		let timerHandler = null;
+		let customerTimerHandler = null;
 		let count = null;
 		let prob = null;
+
+		//set up statistical variables
+		let totalCount = 0;
+		let totalLost = 0;
+		let totalWait = 0;
+
+		// when simulation starts
 		$("#start").click(function() {
+			this.disabled = true;
+			let inputs = document.getElementsByTagName("INPUT");
+			for (let i = 0; i < inputs.length; i++) {
+		        inputs[i].disabled = true;
+			}
+			document.getElementById("day-selector").disabled = true;
+			// time index starts with 0 representing 7:00 on weekdays
+			// time index starts with 4 representing 8:00 on weekends
 			let timeIndex = 0;
+			if (day === "Saturday" || day === "Sunday") {
+				timeIndex = 4;
+			}
+			
 			count = COUNT[day];
 			if (!timerHandler) {
+				
 				prob = PROB[day];
 				timerHandler = setInterval(function() {
 					
 					// reset and stop all when simulation finished
-					if (getTime() === 25) {
-						clearInterval(timerHandler);
-						clearAll(day);
-						alert("Simulation finished.")
-						return;
+					if (day === "Friday" || day === "Saturday") {
+						if (getTime() === 21) {
+							clearInterval(timerHandler);
+							clearInterval(customerTimerHandler);
+							clearAll(day);
+							alert("Simulation finished.")
+							return;
+						}
+					} else {
+						if (getTime() === 25) {
+							clearInterval(timerHandler);
+							clearInterval(customerTimerHandler);
+							clearAll(day);
+							alert("Simulation finished.")
+							return;
+						}
 					}
-
-
+					
+					// update the clock on the page
 					updateTime();
+
 					// adjust number of servers at each station
+					// adjust number of customers at each station
+					// reflect if the station is open or closed
 					for (let i = 0; i < STATION_NAMES.length; i++) {
 						let stationName = STATION_NAMES[i];
-						if (isOpen(day, STATION_NAMES[i], getTime())) {
-							document.getElementById(STATION_NAMES[i] + "-title").classList.remove("closed");
-						} else {
-
-							document.getElementById(STATION_NAMES[i] + "-title").classList.add("closed");
+						// adjust the number of servers according to the shift schedule
+						if (ctSchedule) {
+							console.log("using ct schedule");
+							adjustServer(stationName, CT_SHIFTS[day][i][timeIndex]);
+						} else if (modelSchedule){
+							console.log("using model schedule");
+							adjustServer(stationName, MODEL_SHIFTS[day][i][timeIndex]);
 						}
 
-						adjustServer(stationName, SHIFTS[day][i][timeIndex]);
-
-						// get the number of customers gone in the past 15 minutes
+						// check the number of server
 						let curServerCount = $("#" + stationName + "-server-area div").children().length;
 						if (curServerCount > 0) {
+							// if there are servers, get the number of customers goen in the past 15 minutes
 							let customersGone = Math.ceil(TIME_INTERVAL * getServerSpeed(stationName, curServerCount));
-							if (stationName === "Market") {
-								console.log("Time is " + getTime());
-								console.log("Now Market has " + ($("#" + stationName + "-wait-area").children().length - 1) + " customers.");
-								console.log(customersGone + " gone at " + stationName);
-							}
+
+							// remove the gone customer
 							removeCustomer(stationName, customersGone);
-							if (stationName === "Market") {
-								console.log("After Market has " + ($("#" + stationName + "-wait-area").children().length - 1) + " customers.");
+						}
+
+						// put closed signal at each station if the station is closed
+						if (isOpen(day, stationName, getTime())) {
+							document.getElementById(STATION_NAMES[i] + "-title").classList.remove("closed");
+						} else {
+							// clear all customer if the station is closed
+							// these customers are the ones that are lost, record the number
+							totalLost += getCustomerCount(stationName)
+							while ($("#" + stationName + "-wait-area").children().length > 1) {
+								$("#" + stationName + "-wait-area").children().last().remove();
 							}
+							updateCount(stationName);
+							document.getElementById(STATION_NAMES[i] + "-title").classList.add("closed");
 						}
 						
 					}
 
-					let customerIndex = 0;
-					let customerPerStation = [];
-					for (let i = 0; i < STATION_NAMES.length; i++) {
-						customerPerStation[i] = Math.ceil(count[timeIndex] * (prob[STATION_NAMES[i]][timeIndex] / 100));
-					}
-					let customerCount = customerPerStation.reduce(REDUCER);
-					console.log(customerPerStation);
-					console.log(customerCount + " came.");
-					let customerTimerHandler = setInterval(function() {
-						if (customerIndex >= customerCount) {
-							timeIndex++;
-							clearInterval(customerTimerHandler);
-							return;
-						}
-						for (let i = 0; i < customerPerStation.length; i++) {
-							if (customerPerStation[i] > 0) {
-								addCustomer(STATION_NAMES[i]);
-								customerPerStation[i]--;
+					if (mcMode) {
+						console.log("using mc mode");
+						// assign customers to each station base on monte carlo method
+						// customer index represents the nth customer to be assigned
+						let customerIndex = 0;
+						// customer count is the number of customers coming to all station at this time
+						let customerCount = count[timeIndex];
+						// record total count
+						totalCount += customerCount;
+						console.log(customerCount + " came.");
+						customerTimerHandler = setInterval(function() {
+							// if all customers are assigned, this time is finished
+							// increment time index and clear the sub timer handler
+							if (customerIndex >= customerCount || getTime() === 25) {
+								for (let i = 0; i < STATION_NAMES.length; i++) {
+									totalWait += (1 / (getServerSpeed(STATION_NAMES[i], getServerCount(STATION_NAMES[i])))) 
+													* getCustomerCount(STATION_NAMES[i]);
+								}
+								showResult(totalCount, totalLost, (Math.round(totalWait * 100) / 100));
+								timeIndex++;
+								clearInterval(customerTimerHandler);
+								customerTimerHandler = null;
+								return;
 							}
+							// record the station that the customer is assigned to
+							let destStation = STATION_NAMES[monteCarlo(timeIndex, prob)];
+							addCustomer(destStation);
+							customerIndex++;
+						}, 10);
+					} else if (fixedMode) {
+						console.log("using fixed mode")
+						// add customers to each station based on fixed probability
+						let customerIndex = 0;
+						let customerPerStation = [];
+						for (let i = 0; i < STATION_NAMES.length; i++) {
+							customerPerStation[i] = Math.ceil(count[timeIndex] * (prob[STATION_NAMES[i]][timeIndex] / 100));
 						}
-						customerIndex++;
-					}, 5);
-
-
-
-					// -------------------------------- //
-					// assign customers to each station base on monte carlo method
-					// let customerIndex = 0;
-					// let customerCount = count[timeIndex];
-					// console.log(customerCount + " came.");
-					// let customerTimerHandler = setInterval(function() {
-					// 	if (customerIndex >= customerCount) {
-					// 		timeIndex++;
-					// 		clearInterval(customerTimerHandler);
-					// 		return;
-					// 	}
-					// 	let destStation = STATION_NAMES[monteCarlo(timeIndex, count, prob)];
-					// 	addCustomer(destStation);
-					// 	customerIndex++;
-					// }, 10);
-					// -------------------------------- //
-
-
+						let customerCount = customerPerStation.reduce(REDUCER);
+						totalCount += customerCount;
+						customerTimerHandler = setInterval(function() {
+							if (customerIndex >= customerCount) {
+								for (let i = 0; i < STATION_NAMES.length; i++) {
+									totalWait += (1 / (getServerSpeed(STATION_NAMES[i], getServerCount(STATION_NAMES[i])))) 
+													* getCustomerCount(STATION_NAMES[i]);
+								}
+								showResult(totalCount, totalLost, (Math.round(totalWait * 100) / 100));
+								timeIndex++;
+								clearInterval(customerTimerHandler);
+								customerTimerHandler = null;
+								return;
+							}
+							for (let i = 0; i < customerPerStation.length; i++) {
+								if (customerPerStation[i] > 0) {
+									addCustomer(STATION_NAMES[i]);
+									customerPerStation[i]--;
+								}
+							}
+							customerIndex++;
+						}, 5);
+					}
 				}, speed);
 			}
 		});
+		// stop animation when stop is clicked
 		$("#stop").click(function() {
 			if (timerHandler) {
 				clearInterval(timerHandler);
 				timerHandler = null;
 			}
 		});
+		// clear all when clear is clicked
 		$("#clear").click(function () {
-			if (!timerHandler) {
-				clearAll();
-			}
+			location.reload();
 		});
+		// update the day and clear all when the selected day is changed
 		$("#day-selector").change(function() {
 			day = $(this).val();
 			clearAll(day);
 		});
+		// update the speed displayed on the page when the slider is adjusted
 		document.getElementById("speed-slider").oninput = function() {
 			speed = $("#speed-slider").val()
 			$("#speed").text(speed / 1000);
 		}
+
+		document.getElementById("ct-schedule").addEventListener('change', function() {
+			ctSchedule = this.checked;
+			modelSchedule = false;
+		});
+		document.getElementById("model-schedule").addEventListener('change', function() {
+			console.log("model schedule is selected");
+			modelSchedule = this.checked;
+			ctSchedule = false;
+		});
+		document.getElementById("mc-mode").addEventListener('change', function() {
+			console.log("mc mode is selected");
+			mcMode = this.checked;
+			fixedMode = false;
+		});
+		document.getElementById("fixed-mode").addEventListener('change', function() {
+			console.log("fixed mode is selected");
+			fixedMode = this.checked;
+			mcMode = false;
+		});
 		
 	});
 
+	function showResult(count, lost, wait) {
+		$("#total-count").text(count);
+		$("#total-lost").text(lost);
+		$("#waiting-time").text(wait);
+	}
+
+	/*
+		Check if a station is open at a given time of a given day.
+		@param {String} day: a day of a week, capitalized
+		@param {String} stationName: name of the station needs to be checked
+		@param {double} time: numerical representation of current time
+	*/
 	function isOpen(day, stationName, time) {
 		let hours = HOURS[day][stationName];
 		for (let i = 0; i < hours.length; i++) {
-			if (time >= hours[i][0] && time < hours[i][1]) {
+			if (time >= hours[i][0] && time <= hours[i][1]) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	function monteCarlo(time, count, prob) {
+	/*
+		Randomly select a station to put a customer using Monte Carlo method.
+		@param {int} time: current time of assignment represented by time index
+						   0 represents 7:00, 1 represents 7:15 and so on
+		@param {dictionary} prob: mapping from station name to a list of probabilities
+								  that a customer will show up at that station at each
+								  time of a day. The first element of the list represents
+								  the probability of 7:00, second element represents 
+								  the probability of 7:15 and so on
+		@return {int} i: the index of the station that the cutsomer is assigned
+	*/
+	function monteCarlo(time, prob) {
 		let p = [prob["Quench"][time] / 100, 
 				 prob["Noodle"][time] / 100, 
 				 prob["Plate"][time] / 100, 
@@ -160,14 +289,15 @@
 		for (let i = 0; i < p.length; i++) {
 			s += p[i]
 			if (x <= s) {
-				if (i === 3) {
-					console.log("1 added to Market.")
-				}
 				return i;
 			}
 		}
 	}
 
+	/*
+		Get the current time and return the numerical representation of the time.
+		@return {double} numerical representation of the time
+	*/
 	function getTime() {
 		let time = $("#time").text();
 		let hour = parseInt(time.substring(0, 2));
@@ -231,6 +361,9 @@
 		$("#time").text(time);
 	}
 
+	/*
+		Clear time, count, customers and servers
+	*/
 	function clearAll(day) {
 		// reset time
 		if (day === "Saturday" || day === "Sunday") {
@@ -240,17 +373,16 @@
 		}
 		// reset count
 		for (let i = 0; i < STATION_NAMES.length; i++) {
+			// reset count
 			$("#" + STATION_NAMES[i] + "-count").text("0");
-		}
-		// clear customers
-		for (let i = 0; i < STATION_NAMES.length; i++) {
+			// clear customers
 			while ($("#" + STATION_NAMES[i] + "-wait-area").children().length > 1) {
 				$("#" + STATION_NAMES[i] + "-wait-area").children().last().remove();
 			}
-		}
-		// clear servers
-		for (let i = 0; i < STATION_NAMES.length; i++) {
+			// clear servers
 			$("#" + STATION_NAMES[i] + "-server-area").empty();
+			// close all stations
+			$("#" + STATION_NAMES[i] + "-title").addClass("closed");
 		}
 	}
 
@@ -266,6 +398,7 @@
 			let title = document.createElement("p");
 			title.innerText = (STATION_NAMES[i]);
 			title.classList.add("station-title");
+			title.classList.add("closed");
 			title.id = STATION_NAMES[i] + "-title";
 			let serverArea = document.createElement("div");
 			serverArea.classList.add("server-area");
@@ -320,6 +453,10 @@
 		}
 	}
 
+	/*
+		Creat a DOM object with a picture representing a server.
+		@return {DOM Object} server
+	*/
 	function createServer() {
 		let server = document.createElement("div");
 		server.classList.add("server");
@@ -330,6 +467,14 @@
 		img.style.height = "24.7px";
 		server.appendChild(img);
 		return server;
+	}
+
+	function getServerCount(stationName) {
+		return $("#" + stationName + "-server-area").children().length;
+	}
+
+	function getCustomerCount(stationName) {
+		return $("#" + stationName + "-wait-area").children().length - 1;
 	}
 
 	/*
