@@ -104,10 +104,8 @@
 						let stationName = STATION_NAMES[i];
 						// adjust the number of servers according to the shift schedule
 						if (ctSchedule) {
-							console.log("using ct schedule");
 							adjustServer(stationName, CT_SHIFTS[day][i][timeIndex]);
 						} else if (modelSchedule){
-							console.log("using model schedule");
 							adjustServer(stationName, MODEL_SHIFTS[day][i][timeIndex]);
 						}
 
@@ -138,7 +136,6 @@
 					}
 
 					if (mcMode) {
-						console.log("using mc mode");
 						// assign customers to each station base on monte carlo method
 						// customer index represents the nth customer to be assigned
 						let customerIndex = 0;
@@ -146,7 +143,6 @@
 						let customerCount = count[timeIndex];
 						// record total count
 						totalCount += customerCount;
-						console.log(customerCount + " came.");
 						customerTimerHandler = setInterval(function() {
 							// if all customers are assigned, this time is finished
 							// increment time index and clear the sub timer handler
@@ -167,7 +163,6 @@
 							customerIndex++;
 						}, 10);
 					} else if (fixedMode) {
-						console.log("using fixed mode")
 						// add customers to each station based on fixed probability
 						let customerIndex = 0;
 						let customerPerStation = [];
@@ -227,17 +222,14 @@
 			modelSchedule = false;
 		});
 		document.getElementById("model-schedule").addEventListener('change', function() {
-			console.log("model schedule is selected");
 			modelSchedule = this.checked;
 			ctSchedule = false;
 		});
 		document.getElementById("mc-mode").addEventListener('change', function() {
-			console.log("mc mode is selected");
 			mcMode = this.checked;
 			fixedMode = false;
 		});
 		document.getElementById("fixed-mode").addEventListener('change', function() {
-			console.log("fixed mode is selected");
 			fixedMode = this.checked;
 			mcMode = false;
 		});
@@ -259,7 +251,7 @@
 	function isOpen(day, stationName, time) {
 		let hours = HOURS[day][stationName];
 		for (let i = 0; i < hours.length; i++) {
-			if (time >= hours[i][0] && time <= hours[i][1]) {
+			if (time >= hours[i][0] && time < hours[i][1]) {
 				return true;
 			}
 		}
