@@ -3,7 +3,7 @@
 import numpy as np
 
 statname = ["Quench", "Noodle", "Plate", "Market", "Select", "Seared"]
-def fuc(filename):
+def func(filename):
     hours = np.zeros((6, 72))
     data = open(filename)
     shifts = []
@@ -47,22 +47,22 @@ def fuc(filename):
     return hours
         
 print "Monday"
-print fuc("Monday.txt")
+print func("Monday_output.txt")
 print
 print "Tuesday"
-print fuc("Tuesday.txt")
+print func("Tuesday_output.txt")
 print
 print "Wednesday"
-print fuc("Wednesday.txt")
+print func("Wednesday_output.txt")
 print
 print "Thursday"
-print fuc("Thursday.txt")
+print func("Thursday_output.txt")
 print
 print "Friday"
-print fuc("Friday.txt")
+print func("Friday_output.txt")
 print
 print "Saturday"
-print fuc("Saturday.txt")
+print func("Saturday_output.txt")
 print
 print "Sunday"
-print fuc("Sunday.txt")
+print func("Sunday_output.txt")
