@@ -395,18 +395,28 @@
 	*/
 	function initializeStations(n) {
 		for (let i = 0; i < n; i++) {
+			let titleArea = document.createElement("div");
+			titleArea.classList.add("title-area");
 			let title = document.createElement("p");
 			title.innerText = (STATION_NAMES[i]);
 			title.classList.add("station-title");
 			title.classList.add("closed");
 			title.id = STATION_NAMES[i] + "-title";
+			let titleImg = document.createElement("img");
+			titleImg.classList.add("title-img");
+			titleImg.src = "img/" + STATION_NAMES[i] + ".png";
+			titleImg.alt = STATION_NAMES[i] + " img";
+			titleImg.style.width = "45px";
+			titleImg.style.height = "45px";
+			titleArea.appendChild(title);
+			titleArea.appendChild(titleImg);
 			let serverArea = document.createElement("div");
 			serverArea.classList.add("server-area");
 			serverArea.id = STATION_NAMES[i] + "-server-area";
 			let station = document.createElement("div");
 			station.classList.add("station");
 			station.id = STATION_NAMES[i];
-			station.appendChild(title);
+			station.appendChild(titleArea);
 			station.appendChild(serverArea);
 			station.style.backgroundColor = COLOR[i];
 			$("#station-area").append(station);
@@ -461,7 +471,7 @@
 		let server = document.createElement("div");
 		server.classList.add("server");
 		let img = document.createElement("img");
-		img.src = "server.png";
+		img.src = "img/server.png";
 		img.alt = "cat server";
 		img.style.width = "40px";
 		img.style.height = "24.7px";
@@ -508,7 +518,7 @@
 		let customer = document.createElement("div");
 		customer.classList.add("customer");
 		let img = document.createElement("img");
-		img.src = "cat.png";
+		img.src = "img/customer.png";
 		img.alt = "cat customer";
 		img.style.width = "40px";
 		img.style.height = "24.7px";
