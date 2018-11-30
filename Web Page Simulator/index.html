@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Center Table Schedule Simulation</title>
+	<link rel="stylesheet" type="text/css" href="index.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="index.js"></script>
+	<script src="data.js"></script>
+</head>
+
+<body>
+	<p id="title">Center Table Schedule Simulator</p>
+
+	<div class="container">
+	    <div class="header"><span>Description: (click to expand)</span>
+
+	    </div>
+	    <div class="content">
+	        <p>Day Selector (Upper Left Corner): </p>
+	        <p>Clock (Below Day Selctor): </p>
+	        <p>
+	        	Buttons (Below): <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Start: <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stop: <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Clear:
+	        </p>
+	        <p>
+	        	Schedule Selector (Below Buttons): <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Center Table Schedule: <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Model Generated Schedule:
+	        </p>
+	        <p>
+	        	Mode Selector (Below Buttons): <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Monte Carlo Simulation: <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Fixed Probability: 
+	        </p>
+	        <p>Speed Selector (Above Simulation Area): </p>
+	        <p>
+	        	Result Area (Upper Right Corner): <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Customers Count: <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Customers Lost: <br>
+	        	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Customers Waiting Time:
+	        </p>
+	    </div>
+	</div>
+
+	<div id="control-panel">
+		<button id="start">Start</button>
+		<button id="stop">Stop</button>
+		<button id="clear">Clear</button>
+	</div>
+	<div id="choice-group">
+		<fieldset id="schedule-choice" class="radio-group"> 
+		<legend>Select Schedule</legend> 
+			<input type="radio" id="ct-schedule" name="schedule-choice" value="ct-schedule" checked="checked"> Center Table Schedule<br>
+			<input type="radio" id="model-schedule" name="schedule-choice" value="model-schedule"> Model Generated Schedule<br>
+		</fieldset> 
+		<fieldset id="mode-choice" class="radio-group"> 
+		<legend>Select Mode</legend> 
+			<input type="radio" id="mc-mode" name="mode-choice" value="mc-mode" checked="checked"> Monte Carlo Simulation<br>
+			<input type="radio" id="fixed-mode" name="mode-choice" value="fixed-mode"> Fixed Probability<br>
+		</fieldset> 	
+	</div>
+	
+	<div id="slider-container">
+		<input type="range" min="1800" max="5800" value="3800" class="slider" id="speed-slider">
+		<p id="speed-text-box"><span id="speed"></span> seconds = 15 minutes</p>
+	</div>
+	<div id="result-area">
+		<p>Total Customers Count: <span id="total-count">n/a</span></p>
+		<p>Total Customers Lost: <span id="total-lost">n/a</span></p>
+		<p>Customers Waiting Time: <span id="waiting-time">n/a</span></p>
+	</div>
+	<div id="clock">
+		<div class="select">
+	      <select id="day-selector">
+	        <option>Monday</option>
+	        <option>Tuesday</option>
+	        <option>Wednesday</option>
+	        <option>Thursday</option>
+	        <option>Friday</option>
+	        <option>Saturday</option>
+	        <option>Sunday</option>
+	      </select>
+	      <div class="select__arrow"></div>
+	    </div>
+		<p id="time">07:00</p>
+	</div>
+	<div id="station-area"></div>
+	<div id="wait-area"></div>
+	<div id="entrance-area"></div>
+</body>
+</html>

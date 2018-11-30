@@ -1,5 +1,3 @@
-# Monday
-
 Plate: 7:15 - 10:15
 Plate: 7:30 - 11:00
 Plate: 8:30 - 10:30
@@ -10,13 +8,13 @@ Plate: 17:00 - 20:30
 Plate: 20:30 - 23:00
 Plate: 21:30 - 24:00
 Noodle: 10:45 - 14:00
-Noodle:	10:45 - 14:00
+Noodle: 10:45 - 14:00
 Noodle: 11:00 - 14:30
-Noodle:	11:00 - 14:30
+Noodle: 11:00 - 14:30
 Noodle: 16:45 - 20:30
-Noodle:	16:45 - 20:30
+Noodle: 16:45 - 20:30
 Noodle: 17:00 - 21:00
-Noodle:	17:00 - 21:00
+Noodle: 17:00 - 21:00
 Seared: 10:30 - 14:30
 Seared: 10:45 - 13:30
 Seared: 11:00 - 14:00
@@ -33,7 +31,7 @@ Quench: 12:00 - 15:00
 Quench: 14:00 - 17:00
 Quench: 17:00 - 20:00
 Quench: 18:30 - 22:00
-Quench:	20:00 - 23:00
+Quench: 20:00 - 23:00
 Quench: 22:00 - 25:30
 Select: 10:45 - 14:00
 Select: 11:00 - 14:30
