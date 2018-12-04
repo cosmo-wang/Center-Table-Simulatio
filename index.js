@@ -251,7 +251,7 @@
 	function isOpen(day, stationName, time) {
 		let hours = HOURS[day][stationName];
 		for (let i = 0; i < hours.length; i++) {
-			if (time >= hours[i][0] && time <= hours[i][1]) {
+			if (time >= hours[i][0] && time < hours[i][1]) {
 				return true;
 			}
 		}
