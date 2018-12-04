@@ -125,7 +125,7 @@
 						} else {
 							// clear all customer if the station is closed
 							// these customers are the ones that are lost, record the number
-							totalLost += getCustomerCount(stationName)
+							// totalLost += getCustomerCount(stationName)
 							while ($("#" + stationName + "-wait-area").children().length > 1) {
 								$("#" + stationName + "-wait-area").children().last().remove();
 							}
@@ -238,7 +238,7 @@
 
 	function showResult(count, lost, wait) {
 		$("#total-count").text(count);
-		$("#total-lost").text(lost);
+		// $("#total-lost").text(lost);
 		$("#waiting-time").text(wait);
 	}
 
